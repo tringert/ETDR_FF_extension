@@ -1,14 +1,13 @@
 var urlRegex = /^https?:\/\/(?:[^./?#]+\.)?etdr\.gov\.hu/;
 
 // A function to use as callback
-function doStuffWithDom(hrefs) {
-    console.log(hrefs);
+function doStuffWithDom(infos) {
 
-	for (i = 0; i < hrefs.length; i++) { 
+	for (i = 0; i < infos.length; i++) { 
 		
 		downloading = browser.downloads.download({
-			url : hrefs[i],
-			filename : [i] + '.pdf',
+			url : infos[i].link,
+			filename : infos[i].filename,
 			conflictAction : 'uniquify'
 		});
 	}
