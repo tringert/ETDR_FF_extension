@@ -1,0 +1,33 @@
+{
+
+  "manifest_version": 2,
+  "name": "ÉTDR tömeges letöltés",
+  "version": "1.0",
+
+  "description": "Az ÉTDR azon oldalain, ahol dokumentum található, ez a kiegészítő lehetővé teszi azok tömeges letöltését.",
+  "homepage_url": "https://www.e-epites.hu/etdr",
+  "icons": {
+    "48": "icons/logo_blue_48.png",
+	"48": "icons/logo_blue_96.png"
+  },
+
+  "permissions": [
+    "activeTab",
+	"downloads"
+  ],
+ 
+   "background": {
+    "scripts": ["background.js"]
+  },
+
+  "browser_action": {
+    "default_icon": "icons/logo_blue_32.png",
+    "default_title": "ÉTDR"
+  },
+  
+   "content_scripts": [{
+    "matches": ["*://*.etdr.gov.hu/*"],
+    "js": ["content.js"]
+  }]
+  
+}
