@@ -1,4 +1,4 @@
-var urlRegex = /^https?:\/\/(?:[^./?#]+\.)?etdr\.gov\.hu/;
+var urlRegex = /^https?:\/\/(?:[^./?#]+\.)?etdr\.gov\.hu\/(RDProcessAction\/ProcessActionEdit|RDProcessByUser\/ProcessEdit)/;
 
 // A function to use as callback
 function doStuffWithDom(infos) {

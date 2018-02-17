@@ -20,13 +20,16 @@ function getDownloadInfo(){
     }
 
     var text = document.querySelectorAll('#uploadedDocs_DXMainTable tr');
-
-    var tt = [];
+    // Filename position in table
+    var fpos = 1;
+    if (window.location.href.match(/etdr\.gov\.hu\/RDProcessByUser\/ProcessEdit/)) {
+        fpos = 3;
+    }
 
     for (i = 0; i < infos.length; i++) {
 
-        let item = text[i + 1].cells[1].innerText;
-        infos[i].filename = item
+        let item = text[i + 1].cells[fpos].innerHTML.replace(/<.*\/a>/, '').replace(/\s+$/, '');
+        infos[i].filename = item;
     }
 
     return infos;
