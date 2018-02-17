@@ -22,7 +22,9 @@ function getDownloadInfo(){
     var text = document.querySelectorAll('#uploadedDocs_DXMainTable tr');
     // Filename position in table
     var fpos = 1;
-    if (window.location.href.match(/etdr\.gov\.hu\/RDProcessByUser\/ProcessEdit/)) {
+    if (window.location.href.match(/etdr\.gov\.hu\/RDProcessByUser\/ProcessEdit/) ||
+        window.location.href.match(/etdr\.gov\.hu\/ProcessByOffice\/ProcessEdit/) ||
+        window.location.href.match(/etdr\.gov\.hu\/ProcessAction\/ProcessActionEdit/)) {
         fpos = 3;
     }
 
