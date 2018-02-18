@@ -14,7 +14,7 @@
   
   "icons": {
     "48": "icons/logo_blue_48.png",
-	"48": "icons/logo_blue_96.png"
+	"96": "icons/logo_blue_96.png"
   },
 
   "permissions": [
