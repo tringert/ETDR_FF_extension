@@ -26,7 +26,10 @@
   },
   
    "content_scripts": [{
-    "matches": ["*://*.etdr.gov.hu/*"],
+    "matches": ["*://*.etdr.gov.hu/RDProcessAction/ProcessActionEdit*", 
+				"*://*.etdr.gov.hu/RDProcessByUser/ProcessEdit*",
+				"*://*.etdr.gov.hu/ProcessByOffice/ProcessEdit*",
+				"*://*.etdr.gov.hu/ProcessAction/ProcessActionEdit*"],
     "js": ["content.js"]
   }]
   
