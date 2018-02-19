@@ -16,7 +16,9 @@ function getDownloadInfo(){
 
     for (link of links) {
         let href = link.getAttribute('href');
-        infos.push({ link: `https://teszt.etdr.gov.hu${href}` });
+        if (href.match(/\/Document\/Download\//)) {
+			infos.push({ link: `https://teszt.etdr.gov.hu${href}` });
+		}
     }
 
     var text = document.querySelectorAll('#uploadedDocs_DXMainTable tr');
