@@ -17,7 +17,7 @@ function getDownloadInfo(){
     for (link of links) {
         let href = link.getAttribute('href');
         if (href.match(/\/Document\/Download\//)) {
-			infos.push({ link: `https://teszt.etdr.gov.hu${href}` });
+			infos.push({ link: `https://www.etdr.gov.hu${href}` });
 		}
     }
 
