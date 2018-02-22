@@ -3,7 +3,7 @@
   "manifest_version": 2,
   "name": "ÉTDR (dokumentumok tömeges letöltése)",
   "short_name": "ÉTDR",
-  "version": "1.0",
+  "version": "1.1",
   
   "developer": {
     "name": "Tringer Tamás (Lechner Tudásközpont NKft.)",
