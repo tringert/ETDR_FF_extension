@@ -13,6 +13,7 @@ function getDownloadInfo(){
 	
     var links = document.querySelectorAll('#uploadedDocs_DXMainTable a');
     var infos = [];
+	var regex = new RegExp(/[\x00-\x1F\x7F-\x9F]/gu);
 
     for (link of links) {
         let href = link.getAttribute('href');
@@ -32,7 +33,7 @@ function getDownloadInfo(){
 
     for (i = 0; i < infos.length; i++) {
 
-        let item = text[i + 1].cells[fpos].innerHTML.replace(/<.*\/a>/, '').replace(/\s+$/, '');
+        let item = text[i + 1].cells[fpos].innerHTML.replace(/<.*\/a>/, '').replace(/\s+$/, '').replace(regex, '');
         infos[i].filename = item;
     }
 
