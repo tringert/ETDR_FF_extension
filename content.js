@@ -33,7 +33,7 @@ function getDownloadInfo(){
 
     for (i = 0; i < infos.length; i++) {
 
-        let item = text[i + 1].cells[fpos].innerHTML.replace(/<.*\/a>/, '').replace(/\s+$/, '').replace(regex, '');
+        let item = text[i + 1].children[3].firstChild.textContent.trim();
         infos[i].filename = item;
     }
 
