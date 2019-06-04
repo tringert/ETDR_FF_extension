@@ -5,7 +5,7 @@ function doStuffWithDom(infos) {
 
 	for (i = 0; i < infos.length; i++) { 
 		
-		downloading = browser.downloads.download({
+		var downloading = browser.downloads.download({
 			url : infos[i].link,
 			filename : infos[i].filename,
 			conflictAction : 'uniquify'
