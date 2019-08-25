@@ -1,15 +1,16 @@
 // Listen for messages
 browser.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-    // Temporary solution until Mozilla fixes the download API error (https://bugzilla.mozilla.org/show_bug.cgi?id=1555591)
-	alert("A kiegészítő a Firefox 67-es verziójától fennálló hibája miatt nem működik. A hibabejelentés a Mozilla felé megtörtént, a kijavítás idejéig ez a felirat olvasható. Chrome böngészőre is elérhető ez a kiegészítő, mely ott működőképes.");
-	return;
-	
+    
 	// If the received message has the expected format...
     if (msg.text === 'report_back') {
         // ... call the specified callback, passing
         // the data back to the background page
         sendResponse(getDownloadInfo());
     }
+	
+	if (msg.text === 'not_supported_browser_version') {
+		alert("A Firefox 67-es verziójától a 69-es verziójáig nem működik ez a kiegészítő, mert ezekben a verziókban a letöltéshez szükséges funkció hibás.");
+	}
 });
 
 // Get the info for download

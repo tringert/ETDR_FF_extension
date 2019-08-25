@@ -1,9 +1,9 @@
 {
 
   "manifest_version": 2,
-  "name": "ÉTDR (dokumentumok tömeges letöltése)",
+  "name": "ÉTDR dokumentumok tömeges letöltése",
   "short_name": "ÉTDR",
-  "version": "1.4.1",
+  "version": "1.4.2",
   
   "developer": {
     "name": "Tringer Tamás (Lechner Tudásközpont NKft.)",
@@ -28,7 +28,7 @@
 
   "browser_action": {
     "default_icon": "icons/logo_blue_32.png",
-    "default_title": "ÉTDR"
+    "default_title": "ÉTDR dokumentumok tömeges letöltése"
   },
   
    "content_scripts": [{
