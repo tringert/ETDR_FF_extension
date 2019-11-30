@@ -7,11 +7,13 @@ async function doStuffWithDom(jsonData) {
     var infos = JSON.parse(jsonData);
 
     // Set the folder name
-    var downloadPrefix = infos.processNumber === "" ? "" : infos.processNumber + "/";
+    var downloadFolder = "# Letöltött ÉTDR dokumentumok/";
+    var downloadPrefix = infos.processNumber === ""
+        ? downloadFolder + currentDateTimeAsFolderName()
+        : downloadFolder + infos.processNumber.replace("/", "_") + "/";
 
     // Iterate through elements and start the download
     for (i = 0; i < infos.loc.length; i++) {
-
         await dLoad(infos.loc[i].link, downloadPrefix + infos.loc[i].filename);
     }
 }
@@ -23,6 +25,18 @@ async function dLoad(url, fileName) {
         filename: fileName,
         conflictAction: 'uniquify'
     });
+}
+
+function currentDateTimeAsFolderName() {
+    var dt = new Date();
+    var year = dt.getFullYear().toString();
+    var month = dt.getMonth().toString();
+    var day = dt.getDay().toString();
+    var hour = dt.getHours().toString();
+    var minutes = dt.getMinutes().toString();
+    var seconds = dt.getSeconds().toString();
+
+    return `${year}.${month}.${day}_${hour + minutes + seconds}/`;
 }
 
 // A function to send back the browser's version
