@@ -1,20 +1,19 @@
 {
-
   "manifest_version": 2,
   "name": "ÉTDR dokumentumok tömeges letöltése",
   "short_name": "ÉTDR",
   "version": "1.5.1",
-  
+
   "developer": {
     "name": "Tringer Tamás (Lechner Tudásközpont NKft.)",
     "url": "https://www.e-epites.hu/etdr"
   },
-  
+
   "description": "Az ÉTDR azon oldalain, ahol dokumentum található, ez a kiegészítő lehetővé teszi azok tömeges letöltését.",
-  
+
   "icons": {
     "48": "Content/icons/logo_blue_48.png",
-	"96": "Content/icons/logo_blue_96.png"
+    "96": "Content/icons/logo_blue_96.png"
   },
 
   "permissions": [
@@ -31,13 +30,16 @@
     "default_icon": "Content/icons/logo_blue_32.png",
     "default_title": "ÉTDR dokumentumok tömeges letöltése"
   },
-  
-   "content_scripts": [{
-    "matches": ["*://*.etdr.gov.hu/RDProcessAction/ProcessActionEdit*", 
-				"*://*.etdr.gov.hu/RDProcessByUser/ProcessEdit*",
-				"*://*.etdr.gov.hu/ProcessByOffice/ProcessEdit*",
-				"*://*.etdr.gov.hu/ProcessAction/ProcessActionEdit*"],
-    "js": ["content.js"]
-  }]
-  
+
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.etdr.gov.hu/RDProcessAction/ProcessActionEdit*",
+        "*://*.etdr.gov.hu/RDProcessByUser/ProcessEdit*",
+        "*://*.etdr.gov.hu/ProcessByOffice/ProcessEdit*",
+        "*://*.etdr.gov.hu/ProcessAction/ProcessActionEdit*"
+      ],
+      "js": [ "content.js" ]
+    }
+  ]
 }
