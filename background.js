@@ -13,9 +13,54 @@ async function doStuffWithDom(jsonData) {
         : downloadFolder + infos.processNumber.replace("/", "_") + "/";
 
     // Iterate through elements and start the download
-    for (i = 0; i < infos.loc.length; i++) {
+    for (var i = 0; i < infos.loc.length; i++) {
         await dLoad(infos.loc[i].link, downloadPrefix + infos.loc[i].filename);
     }
+
+    // Get the local storage to determine if a new install or an update occured
+    var gettingItem = browser.storage.local.get();
+    gettingItem.then((res) => {
+        detectVersionChange(res.ETDR_ExtVersion, res.ETDR_ShowChangeLog);
+    });
+}
+
+// When a new install or an update occured, show a changelog page to the user
+function detectVersionChange(storedVersion, showChangelog) {
+    // Get the extensions actual version from the manifest file
+    var extVersion = browser.runtime.getManifest().version.replace(/\./g, "");
+
+    // Check if the extension's version is stored in the local storage and if it is older than the current one. If yes, then store it and set to show the changelog.
+    if (storedVersion === undefined || storedVersion < extVersion) {
+        storeCurrentVersion(extVersion);
+        storeShowChangelog(true);
+        showChangelog = true;
+    }
+
+    // If the showing the changelog window isn't stored in the local storage, then store it and set it to show
+    if (showChangelog === undefined) {
+        storeShowChangelog(true);
+        showChangelog = true;
+    }
+
+    // Show the changelog if necessary and store that next time the changelog window won't be displayed
+    if (showChangelog) {
+        openChangelog();
+        storeShowChangelog(false);
+    }
+}
+
+// Changelog window show value store
+function storeShowChangelog(value) {
+    browser.storage.local.set({
+        ETDR_ShowChangeLog: value
+    });
+}
+
+// Current extension's version store
+function storeCurrentVersion(value) {
+    browser.storage.local.set({
+        ETDR_ExtVersion: value
+    });
 }
 
 // Download method
@@ -37,6 +82,17 @@ function currentDateTimeAsFolderName() {
     var seconds = dt.getSeconds().toString();
 
     return `${year}.${month}.${day}_${hour + minutes + seconds}/`;
+}
+
+function openChangelog() {
+    let page = {
+        type: "detached_panel",
+        url: "backgroundpage.html",
+        width: 800,
+        height: 400
+    };
+
+    let creating = browser.windows.create(page);
 }
 
 // A function to send back the browser's version
