@@ -1,26 +1,58 @@
-var urlRegex = /^https?:\/\/(?:[^./?#]+\.)?etdr\.gov\.hu\/(RDProcessAction\/ProcessActionEdit|RDProcessByUser\/ProcessEdit|ProcessByOffice\/ProcessEdit|ProcessAction\/ProcessActionEdit)/;
+var urlRegex = /\/(RDProcessAction\/ProcessActionEdit|RDProcessByUser\/ProcessEdit|ProcessByOffice\/ProcessEdit|ProcessAction\/ProcessActionEdit)/;
+var urlRegexETDR = /\/(etdr.gov.hu|localhost:59057)/;
 var browserVersion = '';
+
+// When the browser-action button is clicked...
+browser.browserAction.onClicked.addListener(async function (tab) {
+
+    // Check the browser's version if this is a working version.
+    // From version 67 to 69 the API's download() function won't include cookies in the requests (https://bugzilla.mozilla.org/show_bug.cgi?id=1555591)
+    var gettingInfo = browser.runtime.getBrowserInfo();
+
+    await gettingInfo.then(setBrowserVersion);
+
+    if (browserVersion === '67' || browserVersion === '68') {
+        chrome.tabs.sendMessage(tab.id, { text: 'not_supported_browser_version' }, doStuffWithDom);
+    }
+
+    // ...check the URL of the active tab against our pattern and...
+    if (urlRegex.test(tab.url)) {
+        // ...if it matches, send a message specifying a callback to do the download
+        chrome.tabs.sendMessage(tab.id, { text: 'report_back' }, doStuffWithDom);
+    } else if (!urlRegex.test(tab.url) && urlRegexETDR.test(tab.url)) {
+        // ...if not on the required page, then notify the user, that the download isn't available
+        chrome.tabs.sendMessage(tab.id, { text: 'download_not_available' });
+    }
+});
 
 // A function to use as callback
 async function doStuffWithDom(jsonData) {
-
     var infos = JSON.parse(jsonData);
 
     // Set the folder name
     var downloadFolder = "# Letöltött ÉTDR dokumentumok/";
     var downloadPrefix = infos.processNumber === ""
         ? downloadFolder + currentDateTimeAsFolderName()
-        : `${downloadFolder}${infos.processNumber.replace("/", "_")}_${currentDateTimeAsFolderName()}/`;
+        : `${downloadFolder}${infos.processNumber.replace("/", "_")}_${currentDateTimeAsFolderName()}`;
 
     // Iterate through elements and start the download
-    for (var i = 0; i < infos.loc.length; i++) {
-        await dLoad(infos.loc[i].link, downloadPrefix + infos.loc[i].filename);
+    for (var i = 0; i < infos.docList.length; i++) {
+        await dLoad(infos.docList[i][1], downloadPrefix + infos.docList[i][0]);
     }
 
     // Get the local storage to determine if a new install or an update occured
     var gettingItem = browser.storage.local.get();
     gettingItem.then((res) => {
         detectVersionChange(res.ETDR_ExtVersion, res.ETDR_ShowChangeLog);
+    });
+}
+
+// Download method
+async function dLoad(url, fileName) {
+    var downloading = await browser.downloads.download({
+        url: url,
+        filename: fileName,
+        conflictAction: 'uniquify'
     });
 }
 
@@ -63,15 +95,6 @@ function storeCurrentVersion(value) {
     });
 }
 
-// Download method
-async function dLoad(url, fileName) {
-    var downloading = await browser.downloads.download({
-        url: url,
-        filename: fileName,
-        conflictAction: 'uniquify'
-    });
-}
-
 function currentDateTimeAsFolderName() {
     var dt = new Date();
     var year = ('0' + dt.getFullYear().toString()).slice(-4);
@@ -100,23 +123,3 @@ function setBrowserVersion(browserInfo) {
     browserVersion = browserInfo.version.slice(0, 2);
 }
 
-// When the browser-action button is clicked...
-browser.browserAction.onClicked.addListener(async function (tab) {
-
-    // Check the browser's version if this is a working version.
-    // From version 67 to 69 the API's download() function won't include cookies in the requests (https://bugzilla.mozilla.org/show_bug.cgi?id=1555591)
-    var gettingInfo = browser.runtime.getBrowserInfo();
-
-    await gettingInfo.then(setBrowserVersion);
-
-    if (browserVersion === '67' || browserVersion === '68') {
-        chrome.tabs.sendMessage(tab.id, { text: 'not_supported_browser_version' }, doStuffWithDom);
-        return;
-    }
-
-    // ...check the URL of the active tab against our pattern and...
-    if (urlRegex.test(tab.url)) {
-        // ...if it matches, send a message specifying a callback too
-        chrome.tabs.sendMessage(tab.id, { text: 'report_back' }, doStuffWithDom);
-    }
-});
