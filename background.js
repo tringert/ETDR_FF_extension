@@ -58,11 +58,12 @@ async function dLoad(jsonData) {
     // Iterate through elements and start the download
     function getPromise(dLoadItem) {
         return new Promise(resolve => {
-            var downloadItem = chrome.downloads.download({
+            // If the filename is specified, the saveAs parameter won't work if the user had set the saveas function previously in the browser settings
+			var downloadItem = chrome.downloads.download({
                 url: dLoadItem[1],
                 filename: downloadPrefix + dLoadItem[0],
-                conflictAction: 'uniquify',
-                headers: []
+				saveAs: false,
+                conflictAction: 'uniquify'
             });
             resolve();
         })
