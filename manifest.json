@@ -34,8 +34,7 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.etdr.gov.hu/*",
-        "http://localhost/*"
+        "*://*.etdr.gov.hu/*"
       ],
       "js": [ "content.js" ]
     }
