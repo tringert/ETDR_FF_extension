@@ -1,6 +1,7 @@
 var urlRegex = /\/(RDProcessAction\/ProcessActionEdit|RDProcessByUser\/ProcessEdit|ProcessByOffice\/ProcessEdit|ProcessAction\/ProcessActionEdit)/;
 var urlRegexETDR = /\/.*etdr.gov.hu/;
 var browserVersion = '';
+var filenames = [];
 var tabId;
 var tabUrl;
 
@@ -41,32 +42,28 @@ function callFrontend() {
 
 // A function to use as callback
 async function dLoad(jsonData) {
+    filenames = [];
     var infos = JSON.parse(jsonData);
-
+    
     // Set the folder name
     var downloadFolder = "# Letöltött ÉTDR dokumentumok/";
     var downloadPrefix = infos.processNumber === ""
         ? downloadFolder + currentDateTimeAsFolderName()
-        : `${downloadFolder}${infos.processNumber.replace("/", "_")}_${currentDateTimeAsFolderName()}`;
-
-    let downLoadChain = Promise.resolve();
-
-    for (let i of infos.docList) {
-        downLoadChain.then(() => getPromise(i));
-    }
+        : `${downloadFolder}${infos.processNumber.toString().replace("/", "_")}_${currentDateTimeAsFolderName()}`;
 
     // Iterate through elements and start the download
-    function getPromise(dLoadItem) {
-        return new Promise(resolve => {
-            // If the filename is specified, the saveAs parameter won't work if the user had set the saveas function previously in the browser settings
-			var downloadItem = chrome.downloads.download({
-                url: dLoadItem[1],
-                filename: downloadPrefix + dLoadItem[0],
-				saveAs: false,
-                conflictAction: 'uniquify'
-            });
-            resolve();
-        })
+    for (var i = 0; i < infos.docList.length; i++) {
+        var filename = uniquifyFilename(infos.docList[i][0]);
+        await dLoadJob(infos.docList[i][1], downloadPrefix + filename);
+    }
+
+    // Download method
+    async function dLoadJob(url, filename) {
+        var downloading = await chrome.downloads.download({
+            url: url,
+            filename: filename,
+            conflictAction: 'uniquify'
+        });
     }
 
     // Get the local storage to determine if a new install or an update occured
@@ -74,6 +71,28 @@ async function dLoad(jsonData) {
     gettingItem.then((res) => {
         detectVersionChange(res.ETDR_ExtVersion, res.ETDR_ShowChangeLog);
     });
+}
+
+// Uniquify isn't working in the downloads API, so we have to do it manually
+function uniquifyFilename(currFilename) {
+    if (filenames.length === 0) {
+        filenames.push([currFilename, 0]);
+        
+        return currFilename;
+    }
+    
+    for (var i = 0; i < filenames.length; i++) {
+        if (filenames[i][0] === currFilename) {
+            filenames[i][1]++
+            return currFilename.replace(/(\.[\w\d_-]+)$/i, ` (${filenames[i][1]})$1`);
+        }
+
+        if (i === filenames.length - 1) {
+            filenames.push([currFilename, 0]);
+            
+            return currFilename;
+        }
+    }
 }
 
 // When a new install or an update occured, show a changelog page to the user
