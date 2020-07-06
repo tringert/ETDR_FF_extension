@@ -1,20 +1,69 @@
-var urlRegex = /^https?:\/\/(?:[^./?#]+\.)?etdr\.gov\.hu\/(RDProcessAction\/ProcessActionEdit|RDProcessByUser\/ProcessEdit|ProcessByOffice\/ProcessEdit|ProcessAction\/ProcessActionEdit)/;
+var urlRegex = /\/(RDProcessAction\/ProcessActionEdit|RDProcessByUser\/ProcessEdit|ProcessByOffice\/ProcessEdit|ProcessAction\/ProcessActionEdit)/;
+var urlRegexETDR = /\/.*etdr.gov.hu/;
 var browserVersion = '';
+var filenames = [];
+var tabId;
+var tabUrl;
+
+// When the browser-action button is clicked...
+browser.browserAction.onClicked.addListener(async function (tab) {
+    tabId = tab.id;
+    tabUrl = tab.url;
+
+    // Check the browser's version if this is a working version.
+    // From version 67 to 69 the API's download() function won't include cookies in the requests (https://bugzilla.mozilla.org/show_bug.cgi?id=1555591)
+    new Promise((resolve, reject) => {
+        resolve(browser.runtime.getBrowserInfo());
+    }).then((browserInfo) => {
+        browserVersion = browserInfo.version.slice(0, 2);
+        return;
+    }).then(() => {
+        callFrontend();
+    });
+});
+
+// When everything is ready, call the content script on the frontend
+function callFrontend() {
+    if (browserVersion === '67' || browserVersion === '68') {
+        chrome.tabs.sendMessage(tabId, { text: 'not_supported_browser_version' });
+        return;
+    }
+
+    // ...check the URL of the active tab against our pattern and...
+    if (urlRegex.test(tabUrl)) {
+        // ...if it matches, send a message specifying a callback to do the download
+        chrome.tabs.sendMessage(tabId, { text: 'report_back' }, dLoad);
+    } else if (!urlRegex.test(tabUrl) && urlRegexETDR.test(tabUrl)) {
+        // ...if not on the required page, then notify the user, that the download isn't available
+        chrome.tabs.sendMessage(tabId, { text: 'download_not_available' });
+        return;
+    }
+}
 
 // A function to use as callback
-async function doStuffWithDom(jsonData) {
-
+async function dLoad(jsonData) {
+    filenames = [];
     var infos = JSON.parse(jsonData);
-
+    
     // Set the folder name
     var downloadFolder = "# Letöltött ÉTDR dokumentumok/";
     var downloadPrefix = infos.processNumber === ""
         ? downloadFolder + currentDateTimeAsFolderName()
-        : `${downloadFolder}${infos.processNumber.replace("/", "_")}_${currentDateTimeAsFolderName()}/`;
+        : `${downloadFolder}${infos.processNumber.toString().replace("/", "_")}_${currentDateTimeAsFolderName()}`;
 
     // Iterate through elements and start the download
-    for (var i = 0; i < infos.loc.length; i++) {
-        await dLoad(infos.loc[i].link, downloadPrefix + infos.loc[i].filename);
+    for (var i = 0; i < infos.docList.length; i++) {
+        var filename = uniquifyFilename(infos.docList[i][0]);
+        await dLoadJob(infos.docList[i][1], downloadPrefix + filename);
+    }
+
+    // Download method
+    async function dLoadJob(url, filename) {
+        var downloading = await chrome.downloads.download({
+            url: url,
+            filename: filename,
+            conflictAction: 'uniquify'
+        });
     }
 
     // Get the local storage to determine if a new install or an update occured
@@ -22,6 +71,28 @@ async function doStuffWithDom(jsonData) {
     gettingItem.then((res) => {
         detectVersionChange(res.ETDR_ExtVersion, res.ETDR_ShowChangeLog);
     });
+}
+
+// Uniquify isn't working in the downloads API, so we have to do it manually
+function uniquifyFilename(currFilename) {
+    if (filenames.length === 0) {
+        filenames.push([currFilename, 0]);
+        
+        return currFilename;
+    }
+    
+    for (var i = 0; i < filenames.length; i++) {
+        if (filenames[i][0] === currFilename) {
+            filenames[i][1]++
+            return currFilename.replace(/(\.[\w\d_-]+)$/i, ` (${filenames[i][1]})$1`);
+        }
+
+        if (i === filenames.length - 1) {
+            filenames.push([currFilename, 0]);
+            
+            return currFilename;
+        }
+    }
 }
 
 // When a new install or an update occured, show a changelog page to the user
@@ -63,15 +134,6 @@ function storeCurrentVersion(value) {
     });
 }
 
-// Download method
-async function dLoad(url, fileName) {
-    var downloading = await browser.downloads.download({
-        url: url,
-        filename: fileName,
-        conflictAction: 'uniquify'
-    });
-}
-
 function currentDateTimeAsFolderName() {
     var dt = new Date();
     var year = ('0' + dt.getFullYear().toString()).slice(-4);
@@ -94,29 +156,3 @@ function openChangelog() {
 
     let creating = browser.windows.create(page);
 }
-
-// A function to send back the browser's version
-function setBrowserVersion(browserInfo) {
-    browserVersion = browserInfo.version.slice(0, 2);
-}
-
-// When the browser-action button is clicked...
-browser.browserAction.onClicked.addListener(async function (tab) {
-
-    // Check the browser's version if this is a working version.
-    // From version 67 to 69 the API's download() function won't include cookies in the requests (https://bugzilla.mozilla.org/show_bug.cgi?id=1555591)
-    var gettingInfo = browser.runtime.getBrowserInfo();
-
-    await gettingInfo.then(setBrowserVersion);
-
-    if (browserVersion === '67' || browserVersion === '68') {
-        chrome.tabs.sendMessage(tab.id, { text: 'not_supported_browser_version' }, doStuffWithDom);
-        return;
-    }
-
-    // ...check the URL of the active tab against our pattern and...
-    if (urlRegex.test(tab.url)) {
-        // ...if it matches, send a message specifying a callback too
-        chrome.tabs.sendMessage(tab.id, { text: 'report_back' }, doStuffWithDom);
-    }
-});
